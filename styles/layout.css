@@ -1,0 +1,97 @@
+/* Header styles */
+.header {
+  display: flex;
+  justify-content: space-between; /* Space elements across the header */
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  width: 100%; /* Ensure the header spans full width */
+  box-sizing: border-box; /* Include padding and borders in the width */
+}
+
+.sidebar-toggle {
+  flex: 0 0 auto; /* Prevent the button from growing or shrinking */
+  margin-right: 10px; /* Add spacing */
+}
+
+.profile-picture-container {
+  margin-left: auto; /* Push profile picture to the far right */
+  display: flex;
+  align-items: center;
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  object-fit: cover;
+}
+
+.login-link {
+  font-size: 1rem;
+  color: #007bff;
+  text-decoration: none;
+  margin-left: 10px;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+/* Sidebar styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px; /* Hidden by default */
+  width: 250px;
+  height: 100%;
+  background-color: #333;
+  color: #fff;
+  overflow-x: hidden;
+  transition: 0.3s;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  left: 0; /* Show the sidebar */
+}
+
+.sidebar .close-btn {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.sidebar-nav ul {
+  list-style-type: none;
+  padding: 5px;
+  margin: 50px 0;
+}
+
+.sidebar-nav ul li {
+  margin: 20px 0;
+  padding: 10px 20px;
+}
+
+.sidebar-nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+.sidebar-nav ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Content styles */
+.content {
+  margin-left: 20px;
+  padding: 20px;
+}
