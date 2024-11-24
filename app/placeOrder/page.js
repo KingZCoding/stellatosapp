@@ -71,7 +71,7 @@ export default function PlaceOrderPage() {
   const addToCart = async (product) => {
     const quantity = quantities[product.id] || 1;
     try {
-      const response = await fetch('/api/cart', {
+      const response = await fetch('http://localhost:3000/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: product.id, quantity }),

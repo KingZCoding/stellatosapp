@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import '../styles/auth.css';
+import '../styles/login.css';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
