@@ -1,20 +1,24 @@
 import prisma from '../../../lib/prisma';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
+  console.log('Request body:', req.body);
+
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'Name, email, and password are required.' });
-  }
-
   try {
-    // Check if the email is already registered
+    const { name, email, password } = req.body;
+
+    // Validate input
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    // Check for existing user
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -23,36 +27,37 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Email is already registered.' });
     }
 
-    // Hash the password
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate a unique verification token
-    const verificationToken = Math.random().toString(36).substr(2, 12);
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    // Create the user in the database with null verifiedAt
-    const newUser = await prisma.user.create({
+    // Create user
+    const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         verificationToken,
-        verifiedAt: null, // Explicitly set verifiedAt to null until verification
+        verifiedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
-    // Set up the Nodemailer transporter
+    // Setup email transporter
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // Use your email service provider
+      service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Construct the verification URL
-    const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verifyEmail?token=${verificationToken}`;
+    const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify-email?token=${verificationToken}`;
 
-    // Send the verification email
+    // Send verification email
     await transporter.sendMail({
       from: `"Stellatos Market" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -65,9 +70,16 @@ export default async function handler(req, res) {
       `,
     });
 
-    res.status(201).json({ message: 'User created successfully. Please verify your email.' });
+    return res.status(201).json({
+      message: 'Account created successfully. Please verify your email.',
+      success: true
+    });
+
   } catch (error) {
     console.error('Error during signup:', error);
-    res.status(500).json({ message: 'Internal server error. Please try again later.' });
+    return res.status(500).json({ 
+      message: 'Internal server error.',
+      success: false
+    });
   }
 }

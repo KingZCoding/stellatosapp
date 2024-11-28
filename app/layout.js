@@ -94,6 +94,8 @@ function ProfileButton() {
           src={session.user.image || '/default-avatar.png'}
           alt={session.user.name || 'User'}
           className="profile-picture"
+          width={50}
+          height={50}
         />
       </Link>
     );
