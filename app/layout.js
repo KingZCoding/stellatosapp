@@ -5,6 +5,7 @@ import { SessionProvider } from 'next-auth/react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import '../styles/layout.css';
+import Image from 'next/image';
 
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -89,7 +90,7 @@ function ProfileButton() {
   if (session) {
     return (
       <Link href="/profile">
-        <img
+        <Image
           src={session.user.image || '/default-avatar.png'}
           alt={session.user.name || 'User'}
           className="profile-picture"
@@ -100,7 +101,7 @@ function ProfileButton() {
 
   return (
     <Link href="/auth" className="login-link">
-      Login
+      Login/Sign Up
     </Link>
   );
 }

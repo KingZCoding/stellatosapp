@@ -13,17 +13,20 @@ export default function AuthPage() {
     password: '',
   });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
 
   const toggleMode = () => {
     setIsLogin((prev) => !prev);
     setFormData({ name: '', email: '', password: '' });
     setError('');
+    setSuccessMessage('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (isLogin) {
       // Handle login
@@ -34,9 +37,17 @@ export default function AuthPage() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        setError(result.error === 'CredentialsSignin' ? 'Invalid credentials' : result.error);
       } else {
-        router.push('/');
+        // Check for verified user (optional, if verification is required)
+        const sessionRes = await fetch('/api/auth/session');
+        const session = await sessionRes.json();
+
+        if (session?.user?.verifiedAt) {
+          router.push('/');
+        } else {
+          setError('Please verify your email before logging in.');
+        }
       }
     } else {
       // Handle signup
@@ -50,14 +61,35 @@ export default function AuthPage() {
         const data = await response.json();
 
         if (response.ok) {
-          alert('Account created! You can now log in.');
+          setSuccessMessage(
+            'Account created! Check your email for a verification link. Please check your spam folder as well.'
+          );
           setIsLogin(true);
         } else {
-          setError(data.message || 'Something went wrong');
+          setError(data.message || 'Something went wrong.');
         }
       } catch (err) {
         setError('Something went wrong. Please try again.');
       }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      const response = await fetch('/api/auth/sendVerificationEmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      if (response.ok) {
+        setSuccessMessage('Verification email resent. Please check your inbox or spam folder.');
+      } else {
+        const data = await response.json();
+        setError(data.message || 'Failed to resend verification email.');
+      }
+    } catch (error) {
+      setError('Something went wrong. Please try again.');
     }
   };
 
@@ -104,12 +136,20 @@ export default function AuthPage() {
           />
         </div>
         {error && <p className="error">{error}</p>}
+        {successMessage && <p className="success">{successMessage}</p>}
         <button type="submit">{isLogin ? 'Login' : 'Signup'}</button>
       </form>
       <p className="switch-mode">
         {isLogin ? 'Don’t have an account?' : 'Already have an account?'}{' '}
         <button onClick={toggleMode}>{isLogin ? 'Signup' : 'Login'}</button>
       </p>
+
+      {/* Resend Verification (optional) */}
+      {isLogin && formData.email && (
+        <button onClick={handleResendVerification} className="resend-button">
+          Resend Verification Email
+        </button>
+      )}
     </div>
   );
 }

@@ -18,7 +18,6 @@ export const authOptions = {
           throw new Error('Email and password are required');
         }
 
-        // Check if the user exists in the database
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
@@ -27,17 +26,12 @@ export const authOptions = {
           throw new Error('No user found with this email');
         }
 
-        // Verify the provided password matches the stored hash
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
+        const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {
           throw new Error('Invalid password');
         }
 
-        // Return user details for session
         return { id: user.id, name: user.name, email: user.email };
       },
     }),
@@ -47,20 +41,26 @@ export const authOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id;
-      }
-      return session;
-    },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id; // Attach user ID to the token
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
+    async session({ session, token }) {
+      console.log('Session Callback - Session:', session);
+      console.log('Session Callback - Token:', token);
+      if (token) {
+        session.user.id = token.id; // Attach user ID to the session
+        session.user.email = token.email;
+        session.user.name = token.name;
+      }
+      return session;
+    },
   },
-  debug: true,
+  debug: true, // Enable debugging for easier error tracing
 };
 
 export default NextAuth(authOptions);

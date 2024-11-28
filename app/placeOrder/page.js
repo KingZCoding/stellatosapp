@@ -11,29 +11,33 @@ export default function PlaceOrderPage() {
   const [quantities, setQuantities] = useState({});
   const [cart, setCart] = useState([]);
 
-  // Custom notification function
-  const showNotification = (message) => {
+  // Show a custom notification
+  const showNotification = (message, type = 'info') => {
     const notificationContainer = document.getElementById(
       'notification-container'
     );
 
     if (notificationContainer) {
       const notification = document.createElement('div');
-      notification.className = 'custom-notification';
+      notification.className = `custom-notification ${type}`;
       notification.innerText = message;
 
       notificationContainer.appendChild(notification);
 
       setTimeout(() => {
         notification.remove();
-      }, 3000); // Remove notification after 3 seconds
+      }, 3000); // Remove after 3 seconds
     }
   };
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products'); // Relative path for flexibility
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+
         const data = await response.json();
 
         // Extract unique categories
@@ -51,6 +55,7 @@ export default function PlaceOrderPage() {
         setQuantities(initialQuantities);
       } catch (error) {
         console.error('Error fetching products:', error);
+        showNotification('Failed to load products. Please try again.', 'error');
       }
     };
 
@@ -71,9 +76,10 @@ export default function PlaceOrderPage() {
   const addToCart = async (product) => {
     const quantity = quantities[product.id] || 1;
     try {
-      const response = await fetch('http://localhost:3000/api/cart', {
+      const response = await fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Ensure cookies are sent for session validation
         body: JSON.stringify({ productId: product.id, quantity }),
       });
 
@@ -82,11 +88,11 @@ export default function PlaceOrderPage() {
       }
 
       const updatedCart = await response.json();
-      setCart(updatedCart); // Optional: Update local state if needed
-      showNotification(`${product.name} (${quantity}) added to cart!`);
+      setCart(updatedCart); // Update the cart state
+      showNotification(`${product.name} (${quantity}) added to cart!`, 'success');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      showNotification('Could not add to cart. Please try again.');
+      showNotification('Could not add to cart. Please try again.', 'error');
     }
   };
 

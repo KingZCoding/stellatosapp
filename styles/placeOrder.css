@@ -97,6 +97,7 @@
 .product-card button:hover {
   background-color: #218838;
 }
+
 .notification-container {
   position: fixed;
   top: 10px;
